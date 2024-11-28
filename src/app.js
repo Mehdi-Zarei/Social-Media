@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const helmet = require("helmet");
+const cors = require("cors");
+const { corsOptions } = require("./middlewares/headers");
 const app = express();
 
 //*Built-in middleware
@@ -15,6 +17,7 @@ app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 //* Third-party middleware
 
 app.use(helmet());
+app.use(cors(corsOptions));
 
 //* 404 Error Handler
 
