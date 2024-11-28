@@ -1,9 +1,12 @@
 require("dotenv").config();
 const express = require("express");
+const app = express();
+
 const helmet = require("helmet");
 const cors = require("cors");
 const { corsOptions } = require("./middlewares/headers");
-const app = express();
+
+const authRouter = require("../src/modules/auth/auth.routes");
 
 //*Built-in middleware
 
@@ -13,6 +16,8 @@ app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 //* Application-level middleware
 
 //* Routes
+
+app.use("/auth", authRouter);
 
 //* Third-party middleware
 
