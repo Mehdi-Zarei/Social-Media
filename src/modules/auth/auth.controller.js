@@ -16,7 +16,9 @@ exports.register = async (req, res, next) => {
       { abortEarly: false }
     );
 
-    const isUserExist = await userModel.findOne({ email, userName });
+    const isUserExist = await userModel.findOne({
+      $or: [{ email }, { userName }],
+    });
 
     if (isUserExist) {
       return errorResponse(res, 400, "Email or user name is already exist !!");
@@ -42,7 +44,6 @@ exports.register = async (req, res, next) => {
     });
   } catch (error) {
     // next();
-    console.log(error);
     return res.status(500).json(error);
   }
 };
