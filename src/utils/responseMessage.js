@@ -1,5 +1,5 @@
 //* Helper function to success response format
-exports.successResponse = (res, statusCode = 200, data) => {
+successResponse = (res, statusCode = 200, data) => {
   return res
     .status(statusCode)
     .json({ status: statusCode, success: true, data });
@@ -7,7 +7,7 @@ exports.successResponse = (res, statusCode = 200, data) => {
 
 //* Helper function to error response format
 
-exports.errorResponse = (res, statusCode, message, data) => {
+errorResponse = (res, statusCode, message, data) => {
   console.log(message, data); //Log error details...
 
   return res
