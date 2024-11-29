@@ -8,6 +8,7 @@ const { corsOptions } = require("./middlewares/headers");
 const { errorHandler } = require("./middlewares/errorHandler");
 
 const authRouter = require("../src/modules/auth/auth.routes");
+const postRouter = require("../src/modules/post/posts.routes");
 
 //*Built-in middleware
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 //* Routes
 
 app.use("/auth", authRouter);
+app.use("/posts", postRouter);
 
 //* Third-party middleware
 
