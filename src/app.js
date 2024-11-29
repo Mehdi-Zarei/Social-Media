@@ -5,6 +5,7 @@ const app = express();
 const helmet = require("helmet");
 const cors = require("cors");
 const { corsOptions } = require("./middlewares/headers");
+const { errorHandler } = require("./middlewares/errorHandler");
 
 const authRouter = require("../src/modules/auth/auth.routes");
 
@@ -26,9 +27,12 @@ app.use(cors(corsOptions));
 
 //* 404 Error Handler
 
-app.use((req, res) => {
+app.use((req, res, next) => {
   console.log("This Path Not Found", req.path);
   return res.status(404).json({ message: "Oops!! Page Not Found!!" });
 });
+
+//* Global Error Handler
+app.use(errorHandler);
 
 module.exports = app;
