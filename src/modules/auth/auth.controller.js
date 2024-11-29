@@ -3,6 +3,7 @@ const { userRegisterValidatorSchema } = require("./auth.validator");
 const userModel = require("../../../models/user");
 const refreshTokenModel = require("../../../models/refreshToken");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const {
   errorResponse,
@@ -62,5 +63,40 @@ exports.register = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.login = async (req, res, next) => {
+  try {
+    const { identifier, password } = req.body;
+
+    const user = await userModel.findOne({
+      $or: [{ email: identifier }, { userName: identifier }],
+    });
+
+    if (!user) {
+      return errorResponse(res, 409, "User Not Found !!");
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword) {
+      errorResponse(res, 409, "Password not Valid !!");
+    }
+    // TODO: Token expire in need be change!
+
+    const accessToken = await jwt.sign(
+      { _id: user._id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "60d" }
+    );
+
+    const refreshToken = await refreshTokenModel.createRefreshToken(user);
+
+    return successResponse(res, 200, {
+      data: { accessToken, refreshToken },
+    });
+  } catch (error) {
+    next(error);
   }
 };
