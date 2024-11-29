@@ -8,7 +8,7 @@ successResponse = (res, statusCode = 200, data) => {
 //* Helper function to error response format
 
 errorResponse = (res, statusCode, message, data) => {
-  console.log(message, data); //Log error details...
+  // console.log(message, data); //Log error details...
 
   return res
     .status(statusCode)
