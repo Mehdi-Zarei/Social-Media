@@ -1,6 +1,8 @@
-const { userRegisterValidatorSchema } = require("./auth.validator");
 // const registerValidator = require("../auth/auth.validator");
+const { userRegisterValidatorSchema } = require("./auth.validator");
 const userModel = require("../../../models/user");
+const refreshTokenModel = require("../../../models/refreshToken");
+const jwt = require("jsonwebtoken");
 
 const {
   errorResponse,
@@ -32,18 +34,34 @@ exports.register = async (req, res, next) => {
       email,
       password,
       role: usersCount > 0 ? "USER" : "ADMIN",
-      //biography,
-      //profilePicture,
-      isPrivate: false,
-      isVerified: false,
+    });
+
+    // TODO: Token expire in need be change!
+    const accessToken = await jwt.sign(
+      { _id: newUser._id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "60d" }
+    );
+
+    const refreshToken = await refreshTokenModel.createRefreshToken(newUser);
+
+    res.cookie("access-token", accessToken, {
+      maxAge: 900_000,
+      httpOnly: true,
+      secure: true,
+    });
+
+    res.cookie("refresh-token", refreshToken, {
+      httpOnly: true,
+      maxAge: 900_000,
+      secure: true,
     });
 
     return successResponse(res, 201, {
       message: "New User Created Successfully.",
-      user: { newUser, password: undefined },
     });
-  } catch (error) {
+  } catch (err) {
     // next();
-    return res.status(500).json(error);
+    return res.status(500).json(err.message);
   }
 };
