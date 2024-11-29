@@ -61,7 +61,6 @@ exports.register = async (req, res, next) => {
       message: "New User Created Successfully.",
     });
   } catch (err) {
-    // next();
-    return res.status(500).json(err.message);
+    next(err);
   }
 };
