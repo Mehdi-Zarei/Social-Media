@@ -1,5 +1,8 @@
 // const registerValidator = require("../auth/auth.validator");
-const { userRegisterValidatorSchema } = require("./auth.validator");
+const {
+  userRegisterValidatorSchema,
+  userLoginValidatorSchema,
+} = require("./auth.validator");
 const userModel = require("../../../models/user");
 const refreshTokenModel = require("../../../models/refreshToken");
 const jwt = require("jsonwebtoken");
@@ -69,6 +72,8 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { identifier, password } = req.body;
+
+    await userLoginValidatorSchema.validate({ identifier, password });
 
     const user = await userModel.findOne({
       $or: [{ email: identifier }, { userName: identifier }],
