@@ -98,9 +98,19 @@ exports.login = async (req, res, next) => {
 
     const refreshToken = await refreshTokenModel.createRefreshToken(user);
 
-    return successResponse(res, 200, {
-      data: { accessToken, refreshToken },
+    res.cookie("access-token", accessToken, {
+      maxAge: 900_000,
+      httpOnly: true,
+      // secure: true,
     });
+
+    res.cookie("refresh-token", refreshToken, {
+      httpOnly: true,
+      maxAge: 900_000,
+      // secure: true,
+    });
+
+    return successResponse(res, 200, "User Login successfully.");
   } catch (error) {
     next(error);
   }
