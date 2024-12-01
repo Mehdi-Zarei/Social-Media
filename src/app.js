@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 
+const path = require("path");
 const helmet = require("helmet");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -17,6 +18,7 @@ const postRouter = require("../src/modules/post/posts.routes");
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: false, limit: "50mb" }));
+app.use("/public", express.static(path.join(__dirname, "..", "public")));
 
 //* Third-party middleware
 
