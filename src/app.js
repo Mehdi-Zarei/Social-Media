@@ -4,6 +4,9 @@ const app = express();
 
 const helmet = require("helmet");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 const { corsOptions } = require("./middlewares/headers");
 const { errorHandler } = require("./middlewares/errorHandler");
 
@@ -26,6 +29,7 @@ app.use("/posts", postRouter);
 
 app.use(helmet());
 app.use(cors(corsOptions));
+app.use(cookieParser());
 
 //* 404 Error Handler
 
