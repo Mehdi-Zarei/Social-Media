@@ -18,18 +18,20 @@ const postRouter = require("../src/modules/post/posts.routes");
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 
-//* Application-level middleware
-
-//* Routes
-
-app.use("/auth", authRouter);
-app.use("/posts", postRouter);
-
 //* Third-party middleware
 
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(cookieParser());
+
+//* Application-level middleware
+
+// No Application-level middleware For Now !!
+
+//* Routes
+
+app.use("/auth", authRouter);
+app.use("/posts", postRouter);
 
 //* 404 Error Handler
 
