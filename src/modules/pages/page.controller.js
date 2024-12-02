@@ -8,14 +8,33 @@ exports.showUserPage = async (req, res, next) => {
     const { pageID } = req.params;
     const userID = req.user;
 
+    if (!mongoose.isValidObjectId(pageID)) {
+      return res.status(400).json({ message: "Page ID Not Valid !!" });
+    }
+
+    const isPageExist = await userModel.findOne({ _id: pageID });
+
+    if (!isPageExist) {
+      return res.status(404).json({ message: "User Page Not Found !!" });
+    }
+
     const hasAccess = await hasAccessToPage(userID, pageID);
 
+    const followed = await followModel.findOne({
+      follower: userID._id,
+      following: pageID,
+    });
+
     if (!hasAccess) {
-      return res
-        .status(403)
-        .json({ message: "Follow Page To Show Content !!" });
+      return res.status(403).json({
+        message: "Follow Page To Show Content !!",
+        followed: Boolean(followed),
+      });
     }
-    return res.status(200).json({ message: "User Can See Page Content." });
+    return res.status(200).json({
+      message: "User Can See Page Content.",
+      followed: Boolean(followed),
+    });
   } catch (error) {
     next(error);
   }
