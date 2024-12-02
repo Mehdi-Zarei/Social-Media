@@ -38,4 +38,8 @@ router
   .route("/:pageID/followers")
   .get(authMiddleware, pageController.showUserFollowers);
 
+router
+  .route("/:pageID/followings")
+  .get(authMiddleware, pageController.showUserFollowings);
+
 module.exports = router;
