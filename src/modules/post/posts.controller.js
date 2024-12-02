@@ -5,28 +5,32 @@ exports.createNewPost = async (req, res, next) => {
     const { description, hashtags } = req.body;
     const tags = hashtags.split(",");
 
-    // اطمینان از وجود فایل در درخواست
+    // Ensure the file exists in the request
+
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded!" });
     }
 
-    const user = req.user; // فرض می‌شود که user از middleware احراز هویت به درخواست اضافه شده است
+    //Authentication from middleware auth
 
-    // بررسی نوع فایل (عکس یا ویدیو)
+    const user = req.user;
+
+    // Check file type (photo or video)
+
     let mediaUrlPath;
 
-    // اگر فایل تصویر باشد
+    // If the file is an image
+
     if (req.file.mimetype.startsWith("image")) {
       mediaUrlPath = `public/uploads/posts/images/${req.file.filename}`;
     }
-    // اگر فایل ویدیو باشد
+    // If the file is an video
     else if (req.file.mimetype.startsWith("video")) {
       mediaUrlPath = `public/uploads/posts/videos/${req.file.filename}`;
     } else {
       return res.status(400).json({ message: "Unsupported file type" });
     }
 
-    // ایجاد پست جدید با داده‌های دریافت‌شده
     const newPost = await postsModel.create({
       media: {
         filename: req.file.filename,
@@ -34,11 +38,11 @@ exports.createNewPost = async (req, res, next) => {
       },
       description,
       hashtags: tags,
-      user: user._id, // شناسه کاربر از اطلاعات احراز هویت
+      user: user._id,
     });
 
     return res.status(201).json({ message: "New Post Created Successfully." });
   } catch (error) {
-    next(error); // مدیریت خطا
+    next(error);
   }
 };
