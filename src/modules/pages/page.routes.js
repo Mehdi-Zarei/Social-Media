@@ -26,4 +26,12 @@ const authMiddleware = require("../../middlewares/auth");
 
 router.route("/:pageID").get(authMiddleware, pageController.showUserPage);
 
+router
+  .route("/:pageID/follow")
+  .post(authMiddleware, pageController.followUsers);
+
+router
+  .route("/:pageID/unFollow")
+  .post(authMiddleware, pageController.unFollowUsers);
+
 module.exports = router;
