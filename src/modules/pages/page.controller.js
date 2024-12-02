@@ -66,6 +66,42 @@ exports.followUsers = async (req, res, next) => {
 
 exports.unFollowUsers = async (req, res, next) => {
   try {
+    const user = req.user;
+    const { pageID } = req.params;
+
+    if (!mongoose.isValidObjectId(pageID)) {
+      return res.status(400).json({ message: "Page ID Not Valid !!" });
+    }
+
+    const isPageExist = await userModel.findOne({ _id: pageID });
+
+    if (!isPageExist) {
+      return res.status(404).json({ message: "Page Not Found  !!" });
+    }
+
+    if (isPageExist.equals(user._id)) {
+      return res.status(409).json({ message: "You Can't UnFollow Yourself!!" });
+    }
+
+    const hasFollowed = await followModel.findOne({
+      follower: user._id,
+      following: pageID,
+    });
+
+    if (!hasFollowed) {
+      return res
+        .status(409)
+        .json({ message: "This page is not among your followers." });
+    }
+
+    const unFollow = await followModel.findOneAndDelete({
+      follower: user._id,
+      following: pageID,
+    });
+
+    return res
+      .status(200)
+      .json({ message: "You have successfully unfollowed this page." });
   } catch (error) {
     next(error);
   }
