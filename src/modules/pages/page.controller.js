@@ -182,3 +182,50 @@ exports.showUserFollowers = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.showUserFollowings = async (req, res, next) => {
+  try {
+    const userID = req.user;
+    const { pageID } = req.params;
+
+    if (!mongoose.isValidObjectId(pageID)) {
+      return res.status(400).json({ message: "Page ID Not Valid !!" });
+    }
+
+    const isPageExist = await userModel.findOne({ _id: pageID });
+
+    if (!isPageExist) {
+      return res.status(404).json({ message: "Page Not Found  !!" });
+    }
+
+    const IsItFollowed = await followModel.findOne({
+      follower: userID._id,
+      following: pageID,
+    });
+
+    if (!Boolean(IsItFollowed) && isPageExist.isPrivate === true) {
+      return res.status(401).json({
+        message:
+          "It is not possible to view the list of followings of personal pages before following them.",
+      });
+    }
+    const userFollowings = await followModel
+      .find({ follower: pageID })
+      .select("following")
+      .populate("following", "name userName");
+
+    const formattedFollowings = userFollowings.map(
+      (follow) => follow.following
+    );
+
+    if (userFollowings.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "This user has not followed anyone yet." });
+    }
+
+    return res.status(200).json({ userFollowings: formattedFollowings });
+  } catch (error) {
+    next(error);
+  }
+};
