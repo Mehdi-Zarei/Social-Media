@@ -34,4 +34,8 @@ router
   .route("/:pageID/unFollow")
   .post(authMiddleware, pageController.unFollowUsers);
 
+router
+  .route("/:pageID/followers")
+  .get(authMiddleware, pageController.showUserFollowers);
+
 module.exports = router;
