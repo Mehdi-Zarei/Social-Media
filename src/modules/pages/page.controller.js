@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const userModel = require("../../../models/user");
 const followModel = require("../../../models/follow");
+const postModel = require("../../../models/post");
 const hasAccessToPage = require("../../utils/hasAccessToUserPage");
 
 exports.showUserPage = async (req, res, next) => {
@@ -18,21 +19,22 @@ exports.showUserPage = async (req, res, next) => {
       return res.status(404).json({ message: "User Page Not Found !!" });
     }
 
-    const hasAccess = await hasAccessToPage(userID, pageID);
+    const followerCount = await followModel
+      .find({ following: pageID })
+      .countDocuments();
+
+    const followingCount = await followModel
+      .find({ follower: pageID })
+      .countDocuments();
+
+    const doesItHavAccess = await hasAccessToPage(userID, pageID);
 
     const IsItFollowed = await followModel.findOne({
       follower: userID._id,
       following: pageID,
     });
 
-    const followerCount = await followModel
-      .find({ following: pageID })
-      .countDocuments();
-    const followingCount = await followModel
-      .find({ follower: pageID })
-      .countDocuments();
-
-    if (!hasAccess) {
+    if (!doesItHavAccess) {
       return res.status(403).json({
         message: "Follow Page To Show Content !!",
         isThisPageFollowed: Boolean(IsItFollowed),
@@ -40,11 +42,21 @@ exports.showUserPage = async (req, res, next) => {
         followingCount,
       });
     }
+    const userPageInfo = await userModel
+      .findOne({ _id: pageID })
+      .select("name userName biography isVerified")
+      .lean();
+
+    const userPost = await postModel.find({ user: pageID }).lean();
+
     return res.status(200).json({
       message: "User Can See Page Content.",
       isThisPageFollowed: Boolean(IsItFollowed),
       followerCount,
       followingCount,
+      userPageInfo,
+      userPost,
+      pageOwner: userID._id.toString() === pageID,
     });
   } catch (error) {
     next(error);
