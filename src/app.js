@@ -13,6 +13,7 @@ const { errorHandler } = require("./middlewares/errorHandler");
 
 const authRouter = require("../src/modules/auth/auth.routes");
 const postRouter = require("../src/modules/post/posts.routes");
+const pageRouter = require("../src/modules/pages/page.routes");
 
 //*Built-in middleware
 
@@ -34,6 +35,7 @@ app.use(cookieParser());
 
 app.use("/auth", authRouter);
 app.use("/posts", postRouter);
+app.use("/pages", pageRouter);
 
 //* 404 Error Handler
 
