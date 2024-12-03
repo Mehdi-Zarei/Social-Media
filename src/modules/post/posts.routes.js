@@ -29,4 +29,8 @@ router
     postController.createNewPost
   );
 
+router
+  .route("/:postID/reaction")
+  .post(authMiddleware, postController.likeOrDislikePost);
+
 module.exports = router;
