@@ -28,7 +28,7 @@ const createUploader = (
       const subDir =
         typeof dynamicDestination === "function"
           ? dynamicDestination(file)
-          : "others"; // Default to "others" if no function is provided
+          : "profile"; // Default to "others" if no function is provided
       const finalDestination = path.join(baseDestination, subDir);
 
       // Ensure the subdirectory exists
