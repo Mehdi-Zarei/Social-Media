@@ -91,12 +91,22 @@ exports.likeOrDislikePost = async (req, res, next) => {
 
     if (likeOrDislikePost) {
       await likeModel.findByIdAndDelete(likeOrDislikePost._id);
+      await postsModel.findOneAndUpdate(
+        { _id: isPostExist._id },
+        { $inc: { likeCount: -1 } }
+      );
+
       return res.status(200).json({ message: "Post disliked successfully." });
     } else {
       likeModel.create({
         post: postID,
         user,
       });
+      await postsModel.findOneAndUpdate(
+        { _id: isPostExist._id },
+        { $inc: { likeCount: 1 } }
+      );
+
       return res.status(200).json({ message: "Post liked successfully." });
     }
   } catch (error) {
