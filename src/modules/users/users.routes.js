@@ -7,7 +7,7 @@ const { createUploader } = require("../../middlewares/uploader");
 
 // Configure the uploader for profile pictures
 const profileUploader = createUploader(
-  "./public/uploads/profile",
+  "public/uploads",
   /jpeg|jpg|png|webp/,
   5 * 1024 * 1024 // 5 MB max file size
 );
@@ -17,7 +17,7 @@ router
   .route("/edit-profile")
   .put(
     authMiddleware,
-    profileUploader.single("profile"),
+    profileUploader.single("profilePicture"),
     userController.updateUserProfile
   );
 
