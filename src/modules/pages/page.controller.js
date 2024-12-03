@@ -2,12 +2,13 @@ const { default: mongoose } = require("mongoose");
 const userModel = require("../../../models/user");
 const followModel = require("../../../models/follow");
 const postModel = require("../../../models/post");
+const likeModel = require("../../../models/like");
 const hasAccessToPage = require("../../utils/hasAccessToUserPage");
 
 exports.showUserPage = async (req, res, next) => {
   try {
     const { pageID } = req.params;
-    const userID = req.user;
+    const userID = req.user._id;
 
     if (!mongoose.isValidObjectId(pageID)) {
       return res.status(400).json({ message: "Page ID Not Valid !!" });
@@ -47,7 +48,34 @@ exports.showUserPage = async (req, res, next) => {
       .select("name userName biography isVerified")
       .lean();
 
-    const userPost = await postModel.find({ user: pageID }).lean();
+    const userPost = await postModel
+      .find({ user: pageID })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Find the posts liked by the current user
+    const likedPosts = await likeModel
+      .find({
+        user: userID,
+        post: {
+          $in: userPost.map(
+            (userPost) => new mongoose.Types.ObjectId(userPost._id)
+          ),
+        },
+      })
+      .select("post")
+      .lean();
+
+    // Create a Set of liked post IDs to quickly check if a post has been liked by the user
+    const likedPostIDs = new Set(
+      likedPosts.map((like) => like.post.toString()) // Map through the likedPosts array and extract the post IDs, converting them to strings
+    );
+
+    // Add like information to each post to indicate whether the current user has liked it
+    const postsWithLikeInfo = userPost.map((post) => ({
+      ...post,
+      isLikedByUser: likedPostIDs.has(post._id.toString()), // Check if the post has been liked by the user by looking it up in the likedPostIDs Set
+    }));
 
     return res.status(200).json({
       message: "User Can See Page Content.",
@@ -55,8 +83,8 @@ exports.showUserPage = async (req, res, next) => {
       followerCount,
       followingCount,
       userPageInfo,
-      userPost,
-      pageOwner: userID._id.toString() === pageID,
+      userPost: postsWithLikeInfo,
+      pageOwner: userID.toString() === pageID,
     });
   } catch (error) {
     next(error);
