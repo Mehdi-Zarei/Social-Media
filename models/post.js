@@ -15,6 +15,11 @@ const schema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    likeCount: {
+      type: Number,
+      default: 0,
+      required: true,
+    },
   },
   { timestamps: true }
 );
