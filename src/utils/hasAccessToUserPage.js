@@ -3,14 +3,11 @@ const followModel = require("../../models/follow");
 
 module.exports = async (userID, pageID) => {
   try {
-    if (userID === pageID) {
+    if (userID.toString() === pageID.toString()) {
       return true;
     }
 
-    // console.log("userID==>", userID, "PageID==>", pageID);
-
     const page = await userModel.findOne({ _id: pageID });
-    // console.log("page=>", page);
     if (!page.isPrivate) {
       return true;
     }
