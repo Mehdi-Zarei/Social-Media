@@ -14,11 +14,17 @@ const profileUploader = createUploader(
 
 // Route for uploading profile picture
 router
-  .route("/edit-profile")
+  .route("/edit-profile-picture")
   .put(
     authMiddleware,
     profileUploader.single("profilePicture"),
-    userController.updateUserProfile
+    userController.updateUserProfilePicture
   );
+
+router.route("/profile").get(authMiddleware, userController.getUserProfileInfo);
+
+router
+  .route("/edit-profile-info")
+  .put(authMiddleware, userController.updateUserProfileInfo);
 
 module.exports = router;
