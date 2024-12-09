@@ -2,6 +2,7 @@ const postsModel = require("../../../models/post");
 const userModel = require("../../../models/user");
 const likeModel = require("../../../models/like");
 const saveModel = require("../../../models/save");
+const commentModel = require("../../../models/comment");
 const { default: mongoose } = require("mongoose");
 const hasAccessToUserPage = require("../../utils/hasAccessToUserPage");
 const fs = require("fs");
@@ -98,10 +99,9 @@ exports.removePost = async (req, res, next) => {
       post: postID,
     });
 
-    //TODO:
-    // await commentsModel.deleteMany({
-    //   post: postID,
-    // });
+    await commentsModel.deleteMany({
+      post: postID,
+    });
 
     await postsModel.findByIdAndDelete({
       _id: postID,
@@ -230,6 +230,47 @@ exports.showSavePosts = async (req, res, next) => {
         .json({ message: "You have not saved any posts yet." });
     }
     return res.status(200).json(savedPost);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.createNewComment = async (req, res, next) => {
+  try {
+    const user = req.user._id;
+
+    const { postID } = req.params;
+
+    if (!mongoose.isValidObjectId(postID)) {
+      return res.status(400).json({ message: "Post ID Not Valid !!" });
+    }
+
+    const isPostExist = await postsModel.findOne({ _id: postID });
+
+    if (!isPostExist) {
+      return res.status(404).json({ message: "Post Not Found !!" });
+    }
+
+    const hasAccessToPost = await hasAccessToUserPage(
+      user,
+      isPostExist.user.toString()
+    );
+
+    if (!hasAccessToPost) {
+      return res.status(401).json({
+        message: "You don't have access to private posts to set new comment !!",
+      });
+    }
+
+    const { content } = req.body;
+
+    await commentModel.create({
+      post: postID,
+      user: user,
+      content,
+    });
+
+    return res.status(201).json({ message: "Comment Created Successfully." });
   } catch (error) {
     next(error);
   }
