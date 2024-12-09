@@ -33,4 +33,8 @@ router
   .route("/:postID/reaction")
   .post(authMiddleware, postController.likeOrDislikePost);
 
+router
+  .route("/:postID/updatePostSaveStatus")
+  .post(authMiddleware, postController.saveOrUnSavePosts);
+
 module.exports = router;
