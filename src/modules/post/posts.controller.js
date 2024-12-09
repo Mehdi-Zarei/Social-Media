@@ -4,6 +4,7 @@ const likeModel = require("../../../models/like");
 const saveModel = require("../../../models/save");
 const { default: mongoose } = require("mongoose");
 const hasAccessToUserPage = require("../../utils/hasAccessToUserPage");
+const fs = require("fs");
 
 exports.createNewPost = async (req, res, next) => {
   try {
@@ -56,6 +57,57 @@ exports.createNewPost = async (req, res, next) => {
     });
 
     return res.status(201).json({ message: "New Post Created Successfully." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.removePost = async (req, res, next) => {
+  try {
+    const user = req.user._id;
+
+    const { postID } = req.params;
+
+    if (!mongoose.isValidObjectId(postID)) {
+      return res.status(400).json({ message: "Post ID Not Valid !!" });
+    }
+
+    const isPostExist = await postsModel.findOne({ _id: postID });
+
+    if (!isPostExist) {
+      return res.status(404).json({ message: "Post Not Found !!" });
+    }
+
+    if (isPostExist.user.toString() !== user.toString()) {
+      return res
+        .status(401)
+        .json({ message: "You do not have permission to delete this post!!" });
+    }
+
+    const pathMedia = isPostExist.media.path;
+
+    fs.unlinkSync(pathMedia, (err) => {
+      next(err);
+    });
+
+    await saveModel.deleteMany({
+      post: postID,
+    });
+
+    await likeModel.deleteMany({
+      post: postID,
+    });
+
+    //TODO:
+    // await commentsModel.deleteMany({
+    //   post: postID,
+    // });
+
+    await postsModel.findByIdAndDelete({
+      _id: postID,
+    });
+
+    return res.status(200).json({ message: "Post Removed Successfully." });
   } catch (error) {
     next(error);
   }
