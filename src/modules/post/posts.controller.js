@@ -163,12 +163,16 @@ exports.showSavePosts = async (req, res, next) => {
   try {
     const user = req.user._id;
 
-    const savedPost = await saveModel
-      .find({ user })
-      .populate("user", "userName name")
-      .populate("post");
+    const savedPost = await saveModel.find({ user }).populate({
+      path: "post",
+      populate: {
+        path: "user",
+        select: "name userName",
+        model: "User",
+      },
+    });
 
-    if (savedPost !== true) {
+    if (savedPost.length < 1) {
       return res
         .status(404)
         .json({ message: "You have not saved any posts yet." });
