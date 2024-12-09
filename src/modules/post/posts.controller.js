@@ -158,3 +158,23 @@ exports.saveOrUnSavePosts = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.showSavePosts = async (req, res, next) => {
+  try {
+    const user = req.user._id;
+
+    const savedPost = await saveModel
+      .find({ user })
+      .populate("user", "userName name")
+      .populate("post");
+
+    if (savedPost !== true) {
+      return res
+        .status(404)
+        .json({ message: "You have not saved any posts yet." });
+    }
+    return res.status(200).json(savedPost);
+  } catch (error) {
+    next(error);
+  }
+};
