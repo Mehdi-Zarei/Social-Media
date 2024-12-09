@@ -39,4 +39,8 @@ router
 
 router.route("/saves").get(authMiddleware, postController.showSavePosts);
 
+router
+  .route("/:postID/remove")
+  .delete(authMiddleware, postController.removePost);
+
 module.exports = router;
