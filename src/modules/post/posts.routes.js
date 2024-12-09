@@ -43,4 +43,8 @@ router
   .route("/:postID/remove")
   .delete(authMiddleware, postController.removePost);
 
+router
+  .route("/:postID/newComment")
+  .post(authMiddleware, postController.createNewComment);
+
 module.exports = router;
