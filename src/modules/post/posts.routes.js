@@ -37,4 +37,6 @@ router
   .route("/:postID/updatePostSaveStatus")
   .post(authMiddleware, postController.saveOrUnSavePosts);
 
+router.route("/saves").get(authMiddleware, postController.showSavePosts);
+
 module.exports = router;
