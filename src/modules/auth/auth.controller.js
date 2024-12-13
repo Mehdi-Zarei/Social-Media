@@ -45,24 +45,23 @@ exports.register = async (req, res, next) => {
       role: usersCount > 0 ? "USER" : "ADMIN",
     });
 
-    // TODO: Token expire in need be change!
     const accessToken = await jwt.sign(
       { _id: newUser._id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "60d" }
+      { expiresIn: "15m" }
     );
 
     const refreshToken = await refreshTokenModel.createRefreshToken(newUser);
 
     res.cookie("access-token", accessToken, {
-      maxAge: 900_000,
+      maxAge: 900_000, // 15 Minutes
       httpOnly: true,
       secure: true,
     });
 
     res.cookie("refresh-token", refreshToken, {
+      maxAge: 2_592_000_000, // 30 Day
       httpOnly: true,
-      maxAge: 900_000,
       secure: true,
     });
 
@@ -93,26 +92,25 @@ exports.login = async (req, res, next) => {
     if (!isValidPassword) {
       errorResponse(res, 409, "Password not Valid !!");
     }
-    // TODO: Token expire in need be change!
 
     const accessToken = await jwt.sign(
       { _id: user._id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "60d" }
+      { expiresIn: "15m" }
     );
 
     const refreshToken = await refreshTokenModel.createRefreshToken(user);
 
     res.cookie("access-token", accessToken, {
-      maxAge: 900_000,
+      maxAge: 900_000, // 15 Minutes
       httpOnly: true,
-      // secure: true,
+      secure: true,
     });
 
     res.cookie("refresh-token", refreshToken, {
+      maxAge: 2_592_000_000, // 30 Day
       httpOnly: true,
-      maxAge: 900_000,
-      // secure: true,
+      secure: true,
     });
 
     return successResponse(res, 200, "User Login successfully.");
@@ -125,32 +123,34 @@ exports.refreshToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
 
-    const userID = await RefreshTokenModel.verifyToken(refreshToken);
+    const userID = await refreshTokenModel.verifyToken(refreshToken);
     if (!userID) {
       return errorResponse(res, 409, "User ID Not Found !!");
     }
 
-    await RefreshTokenModel.findOneAndDelete({ token: refreshToken });
+    await refreshTokenModel.findOneAndDelete({ token: refreshToken });
 
-    const user = await UserModel.findOne({ _id: userID });
+    const user = await userModel.findOne({ _id: userID });
     if (!user) {
       return errorResponse(res, 409, "User Not Found !!");
     }
 
     const accessToken = jwt.sign({ userID: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "30day",
+      expiresIn: "15m",
     });
 
-    const newRefreshToken = await RefreshTokenModel.createToken(user);
+    const newRefreshToken = await refreshTokenModel.createToken(user);
 
     res.cookie("access-token", accessToken, {
-      maxAge: 900_000,
+      maxAge: 900_000, // 15 Minutes
       httpOnly: true,
+      secure: true,
     });
 
-    res.cookie("refresh-token", newRefreshToken, {
-      maxAge: 900_000,
+    res.cookie("refresh-token", refreshToken, {
+      maxAge: 2_592_000_000, // 30 Day
       httpOnly: true,
+      secure: true,
     });
 
     return successResponse(res, 200, "refresh token set successfully.");
