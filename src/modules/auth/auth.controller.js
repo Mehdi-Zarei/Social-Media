@@ -1,17 +1,21 @@
-// const registerValidator = require("../auth/auth.validator");
 const {
   userRegisterValidatorSchema,
   userLoginValidatorSchema,
+  resetPasswordValidatorSchema,
 } = require("./auth.validator");
-const userModel = require("../../../models/user");
-const refreshTokenModel = require("../../../models/refreshToken");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 
 const {
   errorResponse,
   successResponse,
 } = require("../../utils/responseMessage");
+
+const userModel = require("../../../models/user");
+const refreshTokenModel = require("../../../models/refreshToken");
+const resetPasswordModel = require("../../../models/resetPassword");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 exports.register = async (req, res, next) => {
   try {
@@ -111,6 +115,103 @@ exports.login = async (req, res, next) => {
     });
 
     return successResponse(res, 200, "User Login successfully.");
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+
+    const userID = await RefreshTokenModel.verifyToken(refreshToken);
+    if (!userID) {
+      return errorResponse(res, 409, "User ID Not Found !!");
+    }
+
+    await RefreshTokenModel.findOneAndDelete({ token: refreshToken });
+
+    const user = await UserModel.findOne({ _id: userID });
+    if (!user) {
+      return errorResponse(res, 409, "User Not Found !!");
+    }
+
+    const accessToken = jwt.sign({ userID: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30day",
+    });
+
+    const newRefreshToken = await RefreshTokenModel.createToken(user);
+
+    res.cookie("access-token", accessToken, {
+      maxAge: 900_000,
+      httpOnly: true,
+    });
+
+    res.cookie("refresh-token", newRefreshToken, {
+      maxAge: 900_000,
+      httpOnly: true,
+    });
+
+    return successResponse(res, 200, "refresh token set successfully.");
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.forgetPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    await resetPasswordValidatorSchema.validate(
+      { email },
+      { abortEarly: true }
+    );
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found!!" });
+    }
+
+    const restPasswordToken = crypto.randomBytes(16).toString("hex");
+
+    const restPasswordTokenExpireTime = Date.now() + 1000 * 60 * 60; // 1 Hour
+
+    await resetPasswordModel.create({
+      user: user._id,
+      token: restPasswordToken,
+      tokenExpireTime: restPasswordTokenExpireTime,
+    });
+
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.nodemailerEmailAccount,
+        pass: process.env.nodemailerPasswordAccount,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.nodemailerEmailAccount,
+      to: email,
+      subject: "Reset Password Link",
+      html: `
+      <h2>Hi,${user.name}</h2>
+      <a href=http://localhost:${process.env.PORT}/auth/reset-password/${restPasswordToken}>Reset Password<a/>`,
+    };
+
+    transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      message: `Reset password link sended successfully to ${email}`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
   } catch (error) {
     next(error);
   }
