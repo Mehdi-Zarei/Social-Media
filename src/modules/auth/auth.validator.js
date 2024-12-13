@@ -55,3 +55,15 @@ module.exports.resetPasswordValidatorSchema = yup.object().shape({
     .required("Email is required.") // Field is mandatory
     .email("Invalid email format."), // Must follow valid email format
 });
+
+module.exports.forgetPasswordValidatorSchema = yup.object().shape({
+  password: yup
+    .string()
+    .required("Password is required.") // Mandatory field
+    .min(8, "Password must be at least 8 characters long.") // Minimum length
+    .matches(
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/,
+      "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character."
+    ),
+  token: yup.string().required("Reset Password Token Is Required."),
+});
