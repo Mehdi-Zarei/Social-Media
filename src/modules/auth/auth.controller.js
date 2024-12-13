@@ -2,6 +2,7 @@ const {
   userRegisterValidatorSchema,
   userLoginValidatorSchema,
   resetPasswordValidatorSchema,
+  forgetPasswordValidatorSchema,
 } = require("./auth.validator");
 
 const {
@@ -212,6 +213,38 @@ exports.forgetPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
   try {
+    const { password } = req.body;
+
+    const { token } = req.params;
+
+    await forgetPasswordValidatorSchema.validate(
+      { token, password },
+      { abortEarly: true }
+    );
+
+    const resetPassword = await resetPasswordModel.findOne({
+      token,
+      tokenExpireTime: { $gt: Date.now() },
+    });
+
+    if (!resetPassword) {
+      return res
+        .status(404)
+        .json({ message: "User not found or link expired." });
+    }
+
+    const user = await userModel.findOne({ _id: resetPassword.user });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found !!" });
+    }
+
+    user.password = password;
+    await user.save();
+
+    await resetPasswordModel.findOneAndDelete({ _id: resetPassword._id });
+
+    return res.status(200).json({ message: "Password changed successfully." });
   } catch (error) {
     next(error);
   }
