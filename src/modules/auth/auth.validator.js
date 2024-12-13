@@ -48,3 +48,10 @@ module.exports.userLoginValidatorSchema = yup.object().shape({
       "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character."
     ), // Strong password rules
 });
+
+module.exports.resetPasswordValidatorSchema = yup.object().shape({
+  email: yup
+    .string()
+    .required("Email is required.") // Field is mandatory
+    .email("Invalid email format."), // Must follow valid email format
+});
