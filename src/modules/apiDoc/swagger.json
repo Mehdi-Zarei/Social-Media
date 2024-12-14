@@ -933,6 +933,511 @@
           }
         ]
       }
+    },
+    "/posts/{postID}/updatePostSaveStatus": {
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Save or unsave a post.",
+        "description": "This route allows users to save or unsave a post. If the post is already saved by the user, it will be unsaved (removed from saved posts). If the post is not saved, it will be saved in the user's saved posts list.",
+        "parameters": [
+          {
+            "name": "postID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post to save or unsave.",
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully saved or unsaved the post.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post saved successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Invalid Post ID or incorrect request data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post ID Not Valid !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The user does not have access to the post (if the post is private or restricted).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have access to private posts !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found. The post ID provided does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post Not Found !!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/posts/saves": {
+      "get": {
+        "tags": ["Posts"],
+        "summary": "Get all posts saved by the authenticated user.",
+        "description": "This route retrieves a list of all posts that the authenticated user has saved. It returns the posts along with the user's information (name, username).",
+        "responses": {
+          "200": {
+            "description": "List of saved posts successfully retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "post": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "description": "The ID of the saved post."
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Description of the saved post."
+                          },
+                          "media": {
+                            "type": "object",
+                            "properties": {
+                              "filename": {
+                                "type": "string",
+                                "description": "The filename of the media associated with the post."
+                              },
+                              "path": {
+                                "type": "string",
+                                "description": "The file path of the media associated with the post."
+                              }
+                            }
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "The name of the user who created the post."
+                              },
+                              "userName": {
+                                "type": "string",
+                                "description": "The username of the user who created the post."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No saved posts found for the user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You have not saved any posts yet."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access. The user must be authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You must be logged in to view saved posts."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/posts/{postID}/remove": {
+      "delete": {
+        "tags": ["Posts"],
+        "summary": "Remove a post.",
+        "description": "This route allows an authenticated user to delete a post that they have created. The post and all associated data, such as likes, comments, and saves, will be removed. The media file associated with the post will also be deleted.",
+        "parameters": [
+          {
+            "name": "postID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post to be removed.",
+            "schema": {
+              "type": "string",
+              "example": "60f6e0f90b4a34baf53f59d1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post removed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post Removed Successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Invalid Post ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post ID Not Valid !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access. The user must be the owner of the post to delete it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to delete this post!!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post Not Found !!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "/posts/{postID}/newComment": {
+        "post": {
+          "tags": ["Posts", "Comments"],
+          "summary": "Create a new comment on a post.",
+          "description": "This route allows authenticated users to create a new comment on a specific post. The user must provide the post ID in the URL and the content of the comment in the request body.",
+          "parameters": [
+            {
+              "name": "postID",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the post to comment on.",
+              "schema": {
+                "type": "string",
+                "example": "60f6e0f90b4a34baf53f59d1"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "description": "The content of the comment."
+                    }
+                  },
+                  "required": ["content"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Comment created successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Comment Created Successfully."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request. Post ID is invalid or content is missing.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Post ID Not Valid !!"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized. User does not have access to comment on a private post.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "You don't have access to private posts to set new comment !!"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Post not found. The post ID provided does not exist.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Post Not Found !!"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      }
+    },
+    "/posts/{postID}/newComment": {
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Create a new comment on a post.",
+        "description": "This route allows authenticated users to create a new comment on a specific post. The user must provide the post ID in the URL and the content of the comment in the request body.",
+        "parameters": [
+          {
+            "name": "postID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post to comment on.",
+            "schema": {
+              "type": "string",
+              "example": "60f6e0f90b4a34baf53f59d1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "The content of the comment."
+                  }
+                },
+                "required": ["content"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Comment created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Comment Created Successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Post ID is invalid or content is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post ID Not Valid !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. User does not have access to comment on a private post.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have access to private posts to set new comment !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found. The post ID provided does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post Not Found !!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
     }
   },
   "components": {
