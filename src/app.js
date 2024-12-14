@@ -15,6 +15,7 @@ const authRouter = require("../src/modules/auth/auth.routes");
 const postRouter = require("../src/modules/post/posts.routes");
 const pageRouter = require("../src/modules/pages/page.routes");
 const usersRouter = require("../src/modules/users/users.routes");
+const swaggerRouter = require("../src/modules/apiDoc/swagger.routes");
 
 //*Built-in middleware
 
@@ -38,6 +39,7 @@ app.use("/auth", authRouter);
 app.use("/posts", postRouter);
 app.use("/pages", pageRouter);
 app.use("/users", usersRouter);
+app.use("/api-doc", swaggerRouter);
 
 //* 404 Error Handler
 
