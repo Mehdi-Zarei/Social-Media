@@ -17,6 +17,10 @@
     {
       "name": "Posts",
       "description": "Routes for viewing user posts, uploading new posts, deleting own posts, saving posts, liking and disliking posts, and commenting on posts."
+    },
+    {
+      "name": "Users",
+      "description": "Operations related to user profiles, including updating profile pictures, viewing profile information, and user settings."
     }
   ],
   "paths": {
@@ -1425,6 +1429,297 @@
                     "message": {
                       "type": "string",
                       "example": "Post Not Found !!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/users/upload-profile-picture": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update user profile picture.",
+        "description": "This route allows authenticated users to update their profile picture. The user must upload an image file (profile picture) in the request body. The old profile picture will be deleted if it exists.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profilePicture": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The profile picture file to be uploaded."
+                  }
+                },
+                "required": ["profilePicture"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile picture updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Profile picture updated successfully"
+                    },
+                    "profilePicture": {
+                      "type": "string",
+                      "example": "public/uploads/profile/newProfilePic.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file uploaded or unsupported file type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No file uploaded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get user profile information",
+        "description": "This route allows authenticated users to get their profile information, including name, username, email, biography, profile picture, privacy status, and verification status.",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the user profile information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "John Doe"
+                    },
+                    "userName": {
+                      "type": "string",
+                      "example": "john_doe"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "john@example.com"
+                    },
+                    "biography": {
+                      "type": "string",
+                      "example": "This is a biography."
+                    },
+                    "profilePicture": {
+                      "type": "string",
+                      "example": "/uploads/profile/john_doe.jpg"
+                    },
+                    "isPrivate": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "isVerified": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The user is not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized. Please log in."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found. The user may have been deleted or does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/users/edit-profile-info": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update user profile information",
+        "description": "This route allows authenticated users to update their profile information, such as name, username, email, password, biography, and privacy status.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "User's full name.",
+                    "example": "John Doe"
+                  },
+                  "userName": {
+                    "type": "string",
+                    "description": "User's unique username.",
+                    "example": "john_doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "User's email address.",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "User's new password.",
+                    "example": "newPassword123"
+                  },
+                  "biography": {
+                    "type": "string",
+                    "description": "A short biography about the user.",
+                    "example": "This is my new biography."
+                  },
+                  "isPrivate": {
+                    "type": "boolean",
+                    "description": "If true, the user's profile will be private.",
+                    "example": true
+                  }
+                },
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated user profile information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User profile updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Missing required fields or invalid data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid request data"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. User is not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized. Please log in."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found. The user may have been deleted or does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found."
                     }
                   }
                 }
