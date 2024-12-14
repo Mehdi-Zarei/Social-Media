@@ -14,7 +14,7 @@ const profileUploader = createUploader(
 
 // Route for uploading profile picture
 router
-  .route("/edit-profile-picture")
+  .route("/upload-profile-picture")
   .put(
     authMiddleware,
     profileUploader.single("profilePicture"),
