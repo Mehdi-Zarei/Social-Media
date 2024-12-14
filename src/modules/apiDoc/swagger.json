@@ -1,0 +1,960 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Social-Media API",
+    "version": "1.0.0",
+    "description": "API for a social media platform, including user registration and authentication."
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication and user management routes."
+    },
+    {
+      "name": "Pages",
+      "description": "Routes for viewing pages, followers, and followings, and the ability to follow or unfollow a page."
+    },
+    {
+      "name": "Posts",
+      "description": "Routes for viewing user posts, uploading new posts, deleting own posts, saving posts, liking and disliking posts, and commenting on posts."
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Register a new user",
+        "description": "Registers a new user by accepting name, username, email, and password. Performs validation and returns appropriate responses.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Mahdi"
+                  },
+                  "userName": {
+                    "type": "string",
+                    "example": "Mahdi_1995"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "mahdi@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "Mahdi@12345"
+                  }
+                },
+                "required": ["name", "userName", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User registered successfully."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or invalid input.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid input data."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Log in a user",
+        "description": "Authenticates a user using either username or email along with the password. Returns access and refresh tokens stored in cookies.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "description": "Username or email.",
+                    "example": "mahdi@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "Mahdi@12345"
+                  }
+                },
+                "required": ["identifier", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User authenticated successfully. Access and refresh tokens are set in cookies.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Access-Token and Refresh-Token set in HttpOnly cookies.",
+                "schema": {
+                  "type": "string",
+                  "example": "access_token=eyJhb...; HttpOnly; refresh_token=eyJhb...; HttpOnly"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Login successful."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid credentials (email/username or password)."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Refresh access and refresh tokens",
+        "description": "Exchanges an old refresh token for a new access token and refresh token. Deletes the old refresh token from the database and issues a new one.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "The refresh token provided to the user.",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                },
+                "required": ["refreshToken"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access and refresh tokens refreshed successfully.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "New access and refresh tokens set in cookies.",
+                "schema": {
+                  "type": "string",
+                  "example": "access-token=eyJhbGc...; HttpOnly; secure; refresh-token=eyJhbGc...; HttpOnly; secure;"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Refresh token set successfully."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict or invalid token.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UserNotFound": {
+                    "value": {
+                      "error": "User Not Found !!"
+                    }
+                  },
+                  "UserIDNotFound": {
+                    "value": {
+                      "error": "User ID Not Found !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "An unexpected error occurred."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forget-password": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Send reset password link to user email",
+        "description": "Sends a password reset link to the user's email address. The link contains a dynamic token that can be used to reset the password. Example: `/auth/reset-password/{token}`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address to send the reset password link.",
+                    "example": "user@example.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A reset password link has been successfully sent to the provided email address.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Reset password link sent successfully to user@example.com"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found for the provided email address.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User Not Found!!"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An error occurred while sending the email.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "An unexpected error occurred while sending the email."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password/{token}": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Reset password using a token",
+        "description": "This route allows a user to reset their password using a valid reset password token. The token is passed in the URL and is checked for validity. If the token is valid and not expired, the user's password is updated.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "description": "The unique token for password reset. The token is generated when the user requests to reset their password and expires after 1 hour.",
+            "schema": {
+              "type": "string",
+              "example": "587c74a6cee021a3cbc313c9b8153ef0"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "description": "The new password to be set for the user.",
+                    "example": "Mahdi@12345"
+                  }
+                },
+                "required": ["password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Password changed successfully."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or malformed input.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Password does not meet the required format."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found or token expired.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User not found or link expired."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred while processing the request.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "An error occurred while resetting the password."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/pages/{pageID}": {
+      "get": {
+        "tags": ["Pages"],
+        "summary": "Retrieve a user's page content",
+        "description": "Fetches the content of a user’s page by their pageID (which is the user’s _id). It returns the user's basic information, posts, and whether the user follows the page or not, along with the like status of the posts.",
+        "parameters": [
+          {
+            "name": "pageID",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the user’s page to view. This ID corresponds to the user’s _id.",
+            "schema": {
+              "type": "string",
+              "example": "62c7b5f7b4d4c2043cba93c2"
+            }
+          }
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User page content fetched successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User Can See Page Content.",
+                  "isThisPageFollowed": true,
+                  "followerCount": 150,
+                  "followingCount": 50,
+                  "userPageInfo": {
+                    "name": "John Doe",
+                    "userName": "john_doe_123",
+                    "biography": "Welcome to my page!",
+                    "isVerified": true
+                  },
+                  "userPost": [
+                    {
+                      "_id": "post1",
+                      "content": "This is a sample post.",
+                      "createdAt": "2024-12-01T12:00:00Z",
+                      "isLikedByUser": true
+                    },
+                    {
+                      "_id": "post2",
+                      "content": "Another post on my page.",
+                      "createdAt": "2024-12-02T14:30:00Z",
+                      "isLikedByUser": false
+                    }
+                  ],
+                  "pageOwner": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Page ID format.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Page ID Not Valid !!"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access forbidden. User needs to follow the page to see the content.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Follow Page To Show Content !!",
+                  "isThisPageFollowed": false,
+                  "followerCount": 150,
+                  "followingCount": 50
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User page not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User Page Not Found !!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pages/{pageID}/follow": {
+      "post": {
+        "tags": ["Pages"],
+        "summary": "Follow a user’s page",
+        "description": "Allows a user to follow another user’s page. The user must not follow the page already, and cannot follow their own page.",
+        "parameters": [
+          {
+            "name": "pageID",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the user’s page to follow. This ID corresponds to the user’s _id.",
+            "schema": {
+              "type": "string",
+              "example": "62c7b5f7b4d4c2043cba93c2"
+            }
+          }
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User successfully followed the page.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "You are following this page successfully."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Page ID or trying to follow yourself.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "You Can't Follow Yourself!!"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User page not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User Page Not Found !!"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: You are already following this page.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "You are already following this page !!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pages/{pageID}/unFollow": {
+      "post": {
+        "tags": ["Pages"],
+        "summary": "Unfollow a user page",
+        "description": "Unfollows the specified user page. Ensures that the page exists, the user is not trying to unfollow themselves, and they are currently following the page.",
+        "parameters": [
+          {
+            "name": "pageID",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the user page to unfollow.",
+            "schema": {
+              "type": "string",
+              "example": "60d21b4967d0d8992e610c85"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "example": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User has successfully unfollowed the page.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "You have successfully unfollowed this page."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Page ID or user is trying to unfollow themselves.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "You Can't UnFollow Yourself!!"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Page Not Found  !!"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict. User is not following the page or other conflict scenarios.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "This page is not among your followers."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/pages/{pageID}/followers": {
+      "get": {
+        "tags": ["Pages"],
+        "summary": "Get followers of a user page",
+        "description": "Fetches the list of followers for a specified user page. If the page is private, the user must follow the page before viewing the followers list.",
+        "parameters": [
+          {
+            "name": "pageID",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the user page whose followers are to be fetched.",
+            "schema": {
+              "type": "string",
+              "example": "60d21b4967d0d8992e610c85"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of followers retrieved successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "userFollowers": [
+                    {
+                      "_id": "60d21b4967d0d8992e610c80",
+                      "name": "John Doe",
+                      "userName": "john_doe"
+                    },
+                    {
+                      "_id": "60d21b4967d0d8992e610c81",
+                      "name": "Jane Smith",
+                      "userName": "jane_smith"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Page ID provided.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Page ID Not Valid !!"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authorized to view followers due to privacy settings.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "It is not possible to view the list of followers of personal pages before following them."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found or no followers available.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Page Not Found  !!"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/pages/{pageID}/followings": {
+      "get": {
+        "tags": ["Pages"],
+        "summary": "Get followings of a user page",
+        "description": "Fetches the list of users that the specified user page is following. If the page is private, the user must follow the page before viewing the followings list.",
+        "parameters": [
+          {
+            "name": "pageID",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the user page whose followings are to be fetched.",
+            "schema": {
+              "type": "string",
+              "example": "60d21b4967d0d8992e610c85"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users the page is following retrieved successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "userFollowings": [
+                    {
+                      "_id": "60d21b4967d0d8992e610c80",
+                      "name": "John Doe",
+                      "userName": "john_doe"
+                    },
+                    {
+                      "_id": "60d21b4967d0d8992e610c81",
+                      "name": "Jane Smith",
+                      "userName": "jane_smith"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Page ID provided.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Page ID Not Valid !!"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authorized to view followings due to privacy settings.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "It is not possible to view the list of followings of personal pages before following them."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found or no followings available.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Page Not Found  !!"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/posts/": {
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Create a new post with media, description, and hashtags.",
+        "description": "This route allows authenticated and verified users to create a new post. The user must upload a media file (image or video), provide a description, and optionally add hashtags. The post will be saved with the provided data in the database.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "media": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The media file to be uploaded (either image or video)."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "A description for the post."
+                  },
+                  "hashtags": {
+                    "type": "string",
+                    "description": "Comma-separated list of hashtags associated with the post."
+                  }
+                },
+                "required": ["media", "description"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "New post created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "New Post Created Successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Either no file is uploaded or an unsupported file type is provided.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No file uploaded or unsupported file type. Please upload an image or video."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User account is not verified. Please verify your account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Please verify your account before posting."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/posts/{postID}/reaction": {
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Like or dislike a post.",
+        "description": "This route allows users to like or dislike a post. If the user has already liked the post, this will remove the like (dislike). If the user hasn't liked the post yet, this will add a like.",
+        "parameters": [
+          {
+            "name": "postID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post to like or dislike.",
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully liked or disliked the post.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post liked successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Invalid Post ID or incorrect request data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post ID Not Valid !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The user does not have access to the post (if the post is private or restricted).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have access to private posts !!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found. The post ID provided does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post Not Found !!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "access_token",
+        "description": "JWT Access Token stored in cookies."
+      },
+      "refreshAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refresh_token",
+        "description": "JWT Refresh Token stored in cookies."
+      }
+    }
+  },
+  "security": [
+    {
+      "cookieAuth": [],
+      "refreshAuth": []
+    }
+  ]
+}
