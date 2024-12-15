@@ -1,8 +1,8 @@
-### Social-Media
+### Social-Media 💻📱🎶🔊 
 
 Social-Media is a social networking project similar to Instagram, allowing users to register, post content, follow/unfollow others, save posts, like/dislike posts, and more.
 
-## Technologies Used
+## 🛠 Technologies Used
 
 This project is built with the following technologies:
 
@@ -11,7 +11,7 @@ This project is built with the following technologies:
 - **MongoDB**: As the NoSQL database.
 - **JWT Authentication**: For user authentication and security.
 
-## Features
+## 🚀 Features
 
 - **User Registration & Login**: Users can register, log in, and verify their accounts.
 - **Post Creation**: Users can create posts with images, videos, and text descriptions.
@@ -20,7 +20,7 @@ This project is built with the following technologies:
 - **Save Posts**: Users can save posts for easy access.
 - **API Documentation**: API documentation is available via Swagger.
 
-## Installation
+## ⚙️ Installation
 
 Follow these steps to install and set up the project:
 
