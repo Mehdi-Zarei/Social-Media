@@ -7,6 +7,10 @@ exports.getUserProfileInfo = async (req, res, next) => {
     const user = req.user._id;
     const userData = await userModel.findById(user);
 
+    if (!userData) {
+      return res.status(404).json({ message: "User Not Found !!" });
+    }
+
     return res.status(200).json({
       name: userData.name,
       userName: userData.userName,
